@@ -1,8 +1,12 @@
 "use client";
 
 import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
+import toast, { Toaster } from "react-hot-toast";
+
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { useSession } from "next-auth/react";
 import React, { useState } from "react";
+import { db } from "../firebase";
 
 type Props = {
   chatId: string;
@@ -11,9 +15,63 @@ type Props = {
 function ChatInput({ chatId }: Props) {
   const [prompt, setPrompt] = useState("");
   const { data: session } = useSession();
+
+  // TODO: useswr to get the model
+  const model = "text-davinci-003";
+
+  const sendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // send the message
+    if (!prompt) return;
+    const input = prompt.trim();
+    const message: Message = {
+      text: input,
+      createdAt: serverTimestamp(),
+      user: {
+        _id: session?.user?.email!,
+        name: session?.user?.name!,
+        avatar:
+          session?.user?.image! ||
+          `https://ui-avatars.com/api/?name=${session?.user?.name!}`,
+      },
+    };
+
+    // Saved assed prompt to message in firebase
+    await addDoc(
+      collection(
+        db,
+        "users",
+        session?.user?.email!,
+        "chats",
+        chatId,
+        "messages"
+      ),
+      message
+    );
+    setPrompt("");
+    // toast notification loading
+    const notification = toast.loading("ChatGPT is thinking...");
+    // send api to backend to ask gpt the question
+    await fetch("/api/askQuestion", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt: input,
+        chatId,
+        model,
+        session,
+      }),
+    }).then(() => {
+      // toast notification succesfull!
+      toast.success("ChatGPT has responded!", { id: notification });
+    });
+  };
+
   return (
     <div className="bg-gray-700/50 text-gray-400 rounded-lg text-sm ">
-      <form className="p-5 space-x-5 flex">
+      <form onSubmit={(e) => sendMessage} className="p-5 space-x-5 flex">
         <input
           type="text"
           placeholder="Type a message here..."
