@@ -8,6 +8,7 @@
   "dependencies": {
     "@heroicons/react": "^2.0.17",
     "firebase": "^9.21.0",
+    "firebase-admin": "^11.8.0",
     "next": "latest",
     "next-auth": "^4.22.1",
     "openai": "^3.2.1",
