@@ -17,7 +17,7 @@ function ChatInput({ chatId }: Props) {
   const { data: session } = useSession();
 
   // TODO: useswr to get the model
-  const model = "text-davinci-003";
+  const model = "text-ada-001";
 
   const sendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

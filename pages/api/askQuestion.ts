@@ -1,7 +1,8 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
 import query from "../../lib/queryApi";
-
+import admin from "firebase-admin";
+import { adminDb } from "../../firebaseAdmin";
 type Data = {
   answer: string;
 };
@@ -21,9 +22,23 @@ export default async function handler(
   }
   // chatgpt query
   const response = await query(prompt, model);
-  // const message: Message = {
-  // 	text: response || "ChatGPT was unable to process your request.",
-  // 	chatId,
-  // };
-  res.status(200).json({ answer: response! });
+  const message: Message = {
+    text: response || "ChatGPT was unable to process your request.",
+    createdAt: admin.firestore.Timestamp.now(),
+    user: {
+      _id: "CHATGPT",
+      name: "ChatGPT",
+      avatar: "https://links.papareact.com/89k",
+    },
+  };
+  // add to firestore database
+  await adminDb
+    .collection("users")
+    .doc(session?.user?.email)
+    .collection("chats")
+    .doc(chatId)
+    .collection("messages")
+    .add(message);
+
+  res.status(200).json({ answer: message.text });
 }
