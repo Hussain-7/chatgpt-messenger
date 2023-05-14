@@ -13,7 +13,7 @@ const Message = ({ message }: Props) => {
           alt={message.user.name}
           className="h-8 w-8"
         />
-        <p className="pt-1 text-sm">{message.text}</p>
+        <p className="pt-1 text-sm flex flex-col">{message.text}</p>
       </div>
     </div>
   );

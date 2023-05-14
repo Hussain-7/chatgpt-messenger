@@ -2,11 +2,12 @@
 
 import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
 import toast, { Toaster } from "react-hot-toast";
-
+import useSWR from "swr";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { useSession } from "next-auth/react";
 import React, { useState } from "react";
 import { db } from "../firebase";
+import ModelSelection from "./ModelSelection";
 
 type Props = {
   chatId: string;
@@ -17,8 +18,10 @@ function ChatInput({ chatId }: Props) {
   const { data: session } = useSession();
 
   // TODO: useswr to get the model
+  const { data: model } = useSWR("model", {
+    fallbackData: "text-davinci-003",
+  });
 
-  const model = "text-davinci-003";
   const sendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // send the message
@@ -71,6 +74,9 @@ function ChatInput({ chatId }: Props) {
 
   return (
     <div className="bg-gray-700/50 text-gray-400 rounded-lg text-sm ">
+      <div className="md:hidden">
+        <ModelSelection />
+      </div>
       <form onSubmit={sendMessage} className="p-5 space-x-5 flex">
         <input
           type="text"
@@ -90,7 +96,6 @@ function ChatInput({ chatId }: Props) {
           <PaperAirplaneIcon className="h-4 w-4 -rotate-45" />
         </button>
       </form>
-      <div>{/* Modal Selection */}</div>
     </div>
   );
 }
